@@ -1,0 +1,11 @@
+<service>
+    <id>windows-service</id>
+    <name>windows-service</name>
+    <description>This service runs Windows CommandLine.</description>
+    <env name="JAVA_HOME" value="%JAVA_HOME%"/>
+    <env name="WINDOWS_SERVICE_HOME" value="%BASE%"/>
+    <executable>java</executable>
+    <arguments>-Xrs -Xmx256m -jar "%BASE%\windows-service.jar"</arguments>
+    <startmode>Automatic</startmode>
+    <logmode>rotate</logmode>
+</service>
