@@ -71,7 +71,7 @@ public class WindowsController {
         if (!taskExist.compareAndSet(false, true)) {
             return "<h1>Already Exist Task Kill Job!</h1>";
         }
-        final long sleepMillis = Objects.isNull(seconds) || seconds < 300 ? 30 * 1000 : seconds * 1000;
+        final long sleepMillis = Objects.isNull(seconds) || seconds < 300 ? 300 * 1000 : seconds * 1000;
 
         new Thread(() -> {
             try {
