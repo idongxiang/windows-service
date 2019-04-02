@@ -2,6 +2,7 @@ package io.dongxiang.controller;
 
 import eu.bitwalker.useragentutils.UserAgent;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Email: idongxiang@qq.com
@@ -25,6 +27,8 @@ import java.util.Objects;
 @RestController
 public class WindowsController {
     private static final Logger logger = LoggerFactory.getLogger(WindowsController.class);
+
+    private AtomicBoolean taskExist = new AtomicBoolean();
 
     @RequestMapping({"/shutdown"})
     @ResponseBody
@@ -48,11 +52,48 @@ public class WindowsController {
         logger.info(String.format("Welcome %s !", UserAgent.parseUserAgentString(ua)));
         String exec = exec(command);
         logger.info(String.format("Exec Print:\n%s", exec));
+        return "<h1>Run Command OK!</h1>" + render(exec);
+    }
+
+    @RequestMapping({"/taskkill"})
+    @ResponseBody
+    public String exec(@RequestHeader("User-Agent") String ua,
+                       @RequestParam(name = "seconds", required = false) Long seconds,
+                       @RequestParam(name = "image_name") String imageName) {
+        logger.info(String.format("Welcome %s !", UserAgent.parseUserAgentString(ua)));
+
+        String command = "TASKLIST /FI \"IMAGENAME eq " + imageName + "\"";
+        String taskList = exec(command);
+        if (StringUtils.isBlank(taskList) || !taskList.contains(imageName)) {
+            return "<h1>Not Found Process : " + imageName + "!</h1>" + render(taskList);
+        }
+
+        if (!taskExist.compareAndSet(false, true)) {
+            return "<h1>Already Exist Task Kill Job!</h1>";
+        }
+        final long sleepMillis = Objects.isNull(seconds) || seconds < 300 ? 30 * 1000 : seconds * 1000;
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+                logger.error(ExceptionUtils.getStackTrace(e));
+            }
+            String c = "TASKKILL /F /IM " + imageName + " /T";
+            String exec = exec(c);
+            boolean rExist = taskExist.getAndSet(false);
+            logger.info(String.format("Exist = " + rExist + ", Exec Print:\n%s", exec));
+        }).start();
+
+        return "<h1>Task Kill [" + imageName + "] Will In " + sleepMillis / 1000 + " Seconds After!</h1>" + render(taskList);
+    }
+
+    private String render(String text) {
         Parser parser = Parser.builder().build();
-        String input = String.format("```\n%s\n```", exec);
+        String input = String.format("```\n%s\n```", text);
         Node document = parser.parse(input);
         HtmlRenderer renderer = HtmlRenderer.builder().build();
-        return "<h1>Run Command OK!</h1>" + renderer.render(document);
+        return renderer.render(document);
     }
 
     private String exec(String command) {
