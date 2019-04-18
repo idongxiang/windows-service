@@ -1,6 +1,5 @@
 package io.dongxiang.service;
 
-import io.dongxiang.controller.WindowsController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import javax.annotation.PostConstruct;
  */
 @Service
 public class DaemonService {
-    private static final Logger logger = LoggerFactory.getLogger(WindowsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(DaemonService.class);
 
     @Value("${daemon.request.url}")
     private String url;
