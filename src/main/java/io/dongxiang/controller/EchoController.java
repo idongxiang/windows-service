@@ -28,30 +28,8 @@ import java.util.Map;
 public class EchoController {
     private static final Logger logger = LoggerFactory.getLogger(EchoController.class);
 
-    @RequestMapping(value = {"/", "/index", "index.html"}, method = {RequestMethod.POST, RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String echo(@RequestBody(required = false) String requestBody, HttpServletRequest request) {
-        try {
-            StringBuilder headers = new StringBuilder();
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                headers.append(headerName).append(":").append(request.getHeader(headerName)).append(";");
-            }
-            if (headers.length() > 0) {
-                headers.deleteCharAt(headers.length() - 1);
-            }
-            String queryString = StringUtils.isBlank(request.getQueryString()) ? "" : "?" + request.getQueryString();
-            String url = request.getRequestURI() + queryString;
-            String remoteHost = request.getRemoteHost();
-            logger.info("RemoteHost={},Url={},RequestBody={},Headers={},", remoteHost, url, requestBody, headers);
-        } catch (Throwable e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
-        }
-        return "OK";
-    }
-
-    @RequestMapping(value = "/echo", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public String echo(@RequestHeader(name = "User-Agent", required = false) String ua, @RequestHeader HttpHeaders headers, @RequestParam(required = false) Map<String, Object> params, @RequestBody(required = false) String body) {
+    @RequestMapping(value = {"/", "/index", "index.html"}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String index(@RequestHeader(name = "User-Agent", required = false) String ua, @RequestHeader HttpHeaders headers, @RequestParam(required = false) Map<String, Object> params, @RequestBody(required = false) String body) {
         logger.info("User-Agent:" + StringUtils.defaultString(ua, "N/A"));
 
         Map<String, Object> payload = new HashMap<>(10);
@@ -71,4 +49,25 @@ public class EchoController {
         return JSON.toJSONString(payload, SerializerFeature.PrettyFormat);
     }
 
+    @RequestMapping(value = "/record", method = {RequestMethod.POST, RequestMethod.GET}, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String record(@RequestBody(required = false) String requestBody, HttpServletRequest request) {
+        try {
+            StringBuilder headers = new StringBuilder();
+            Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                headers.append(headerName).append(":").append(request.getHeader(headerName)).append(";");
+            }
+            if (headers.length() > 0) {
+                headers.deleteCharAt(headers.length() - 1);
+            }
+            String queryString = StringUtils.isBlank(request.getQueryString()) ? "" : "?" + request.getQueryString();
+            String url = request.getRequestURI() + queryString;
+            String remoteHost = request.getRemoteHost();
+            logger.info("RemoteHost={},Url={},RequestBody={},Headers={},", remoteHost, url, requestBody, headers);
+        } catch (Throwable e) {
+            logger.error(ExceptionUtils.getStackTrace(e));
+        }
+        return "OK";
+    }
 }
