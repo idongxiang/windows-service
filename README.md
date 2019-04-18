@@ -63,7 +63,7 @@ Your renamed winsw.exe binary also accepts the following commands:
 
 **uninstall** to uninstall the service. The opposite operation of above.
 
-**star**t to start the service. The service must have already been installed.
+**start** to start the service. The service must have already been installed.
 
 **stop** to stop the service.
 
