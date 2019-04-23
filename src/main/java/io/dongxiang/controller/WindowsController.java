@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -29,6 +30,7 @@ public class WindowsController {
     private static final Logger logger = LoggerFactory.getLogger(WindowsController.class);
 
     private AtomicBoolean taskExist = new AtomicBoolean();
+    private final ConcurrentHashMap<String, String> locks = new ConcurrentHashMap<>();
 
     @RequestMapping({"/shutdown"})
     @ResponseBody
@@ -61,6 +63,9 @@ public class WindowsController {
                        @RequestParam(name = "seconds", required = false) Long seconds,
                        @RequestParam(name = "image_name") String imageName) {
         logger.info(String.format("Welcome %s !", UserAgent.parseUserAgentString(ua)));
+        if (StringUtils.isBlank(imageName)) {
+            return "<h1>Image Name Can Not Empty !</h1>";
+        }
 
         String command = "TASKLIST /FI \"IMAGENAME eq " + imageName + "\"";
         String taskList = exec(command);
@@ -68,10 +73,12 @@ public class WindowsController {
             return "<h1>Not Found Process : " + imageName + "!</h1>" + render(taskList);
         }
 
-        if (!taskExist.compareAndSet(false, true)) {
-            return "<h1>Already Exist Task Kill Job!</h1>";
+        if (locks.containsKey(imageName)
+                || null != locks.putIfAbsent(imageName, imageName)) {
+            return "<h1>Already Exist Task Kill Job For Image Name [" + imageName + "]!</h1>";
         }
-        final long sleepMillis = Objects.isNull(seconds) || seconds < 300 ? 300 * 1000 : seconds * 1000;
+
+        final long sleepMillis = Objects.isNull(seconds) || seconds < 180 ? 300 * 1000 : seconds * 1000;
 
         new Thread(() -> {
             try {
@@ -81,8 +88,8 @@ public class WindowsController {
             }
             String c = "TASKKILL /F /IM " + imageName + " /T";
             String exec = exec(c);
-            boolean rExist = taskExist.getAndSet(false);
-            logger.info(String.format("Exist = " + rExist + ", Exec Print:\n%s", exec));
+            locks.remove(imageName);
+            logger.info(String.format("Unlock For [" + imageName + "], Exec Print:\n%s", exec));
         }).start();
 
         return "<h1>Task Kill [" + imageName + "] Will In " + sleepMillis / 1000 + " Seconds After!</h1>" + render(taskList);
