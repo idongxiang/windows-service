@@ -78,7 +78,7 @@ public class WindowsController {
             return "<h1>Already Exist Task Kill Job For Image Name [" + imageName + "]!</h1>";
         }
 
-        final long sleepMillis = Objects.isNull(seconds) || seconds < 180 ? 300 * 1000 : seconds * 1000;
+        final long sleepMillis = Objects.isNull(seconds) || seconds < 180 ? 180 * 1000 : seconds * 1000;
 
         new Thread(() -> {
             try {
