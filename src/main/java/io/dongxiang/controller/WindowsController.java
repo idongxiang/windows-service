@@ -57,6 +57,15 @@ public class WindowsController {
         return "<h1>Run Command OK!</h1>" + render(exec);
     }
 
+    @RequestMapping({"/tasklist"})
+    @ResponseBody
+    public String taskList(@RequestHeader("User-Agent") String ua) {
+        logger.info(String.format("Welcome %s !", UserAgent.parseUserAgentString(ua)));
+        String exec = exec("TASKLIST");
+        logger.info(String.format("Exec Print:\n%s", exec));
+        return "<h1>Run Command OK!</h1>" + render(exec);
+    }
+
     @RequestMapping({"/taskkill"})
     @ResponseBody
     public String exec(@RequestHeader("User-Agent") String ua,
